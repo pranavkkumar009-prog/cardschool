@@ -1,0 +1,45 @@
+{
+  "expo": {
+    "name": "CardSchool",
+    "slug": "cardschool",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1A3C2E"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.cardschool.app",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Not used."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1A3C2E"
+      },
+      "package": "com.cardschool.app"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "react-native-reanimated",
+      [
+        "expo-av",
+        { "microphonePermission": false }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "REPLACE_WITH_EAS_PROJECT_ID"
+      }
+    }
+  }
+}

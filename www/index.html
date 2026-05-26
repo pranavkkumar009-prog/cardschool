@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Royal Poker — Learn & Play</title>
+<style>
+:root {
+  --felt:#1a5c2e; --felt-dark:#0d3a1c; --felt-light:#2a7a40;
+  --gold:#d4af37; --gold-light:#f0d060; --gold-dark:#a07820;
+  --card-red:#c0392b; --card-black:#1a1a1a;
+  --text-light:#f0e6c8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Georgia,serif;background:#0a0a0a;color:var(--text-light);min-height:100vh;overflow:hidden}
+.screen{display:none;width:100vw;height:100vh;position:absolute;top:0;left:0;flex-direction:column;align-items:center;justify-content:center}
+.screen.active{display:flex}
+/* HOME */
+#s-home{background:radial-gradient(ellipse at center,#1a3a0a 0%,#0a0a0a 70%);gap:28px}
+.logo h1{font-size:3.2rem;background:linear-gradient(135deg,var(--gold-dark),var(--gold-light),var(--gold-dark));-webkit-background-clip:text;-webkit-text-fill-color:transparent;letter-spacing:4px;font-variant:small-caps;text-align:center}
+.logo .suits{font-size:2.5rem;letter-spacing:8px;text-align:center;margin-bottom:8px}
+.logo p{color:var(--text-light);opacity:.6;letter-spacing:3px;font-size:.9rem;text-align:center}
+.floating-cards{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.fc{position:absolute;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:1.2rem;opacity:.07;animation:floatUp linear infinite}
+@keyframes floatUp{0%{transform:translateY(110vh) rotate(0deg)}100%{transform:translateY(-10vh) rotate(360deg)}}
+/* BUTTONS */
+.btn{padding:13px 38px;border:none;border-radius:6px;font-size:1rem;font-family:Georgia,serif;cursor:pointer;transition:all .2s;letter-spacing:1px}
+.btn-gold{background:linear-gradient(135deg,var(--gold-dark),var(--gold),var(--gold-light));color:#0a0a0a;font-weight:bold;box-shadow:0 4px 20px rgba(212,175,55,.4)}
+.btn-gold:hover{transform:translateY(-2px);box-shadow:0 6px 25px rgba(212,175,55,.6)}
+.btn-outline{background:transparent;color:var(--gold);border:2px solid var(--gold)}
+.btn-outline:hover{background:rgba(212,175,55,.1)}
+.btn-back{background:transparent;border:1px solid rgba(212,175,55,.4);color:var(--gold);padding:6px 14px;border-radius:6px;cursor:pointer;font-size:.85rem;font-family:Georgia,serif;transition:all .2s}
+.btn-back:hover{background:rgba(212,175,55,.1)}
+/* GAME SELECT */
+#s-game-select{background:radial-gradient(ellipse at center,#1a3a0a 0%,#0a0a0a 70%);gap:28px}
+.screen-title h2{font-size:1.9rem;color:var(--gold);letter-spacing:3px;font-variant:small-caps;text-align:center}
+.screen-title p{color:var(--text-light);opacity:.6;text-align:center;margin-top:4px}
+.game-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;max-width:680px;width:90%}
+.game-card{background:linear-gradient(135deg,rgba(26,92,46,.8),rgba(13,58,28,.9));border:2px solid rgba(212,175,55,.3);border-radius:12px;padding:22px 18px;cursor:pointer;transition:all .22s;text-align:center}
+.game-card:hover{border-color:var(--gold);transform:translateY(-3px);box-shadow:0 8px 30px rgba(212,175,55,.2)}
+.game-card .gi{font-size:2.4rem;margin-bottom:10px}
+.game-card h3{color:var(--gold);font-size:1.05rem;margin-bottom:5px}
+.game-card p{color:var(--text-light);font-size:.78rem;opacity:.7;line-height:1.4}
+.game-card .diff{margin-top:7px;font-size:.73rem;color:var(--gold-light)}
+/* MODE SELECT */
+#s-mode-select{background:radial-gradient(ellipse at center,#1a3a0a 0%,#0a0a0a 70%);gap:28px}
+.mode-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;max-width:680px;width:90%}
+.mode-card{background:linear-gradient(135deg,rgba(26,92,46,.8),rgba(13,58,28,.9));border:2px solid rgba(212,175,55,.3);border-radius:14px;padding:28px 22px;cursor:pointer;transition:all .22s;text-align:center}
+.mode-card:hover{border-color:var(--gold);transform:translateY(-4px);box-shadow:0 10px 40px rgba(212,175,55,.25)}
+.mode-card .mi{font-size:2.8rem;margin-bottom:12px}
+.mode-card h3{color:var(--gold);font-size:1.25rem;margin-bottom:7px}
+.mode-card p{color:var(--text-light);font-size:.82rem;line-height:1.6;opacity:.8}
+.badge{display:inline-block;margin-top:11px;padding:3px 13px;border-radius:20px;font-size:.77rem;font-weight:bold}
+.badge-inf{background:rgba(39,174,96,.2);border:1px solid #27ae60;color:#2ecc71}
+.badge-lim{background:rgba(231,76,60,.2);border:1px solid #e74c3c;color:#e74c3c}
+/* TUTORIAL */
+#s-tutorial{background:radial-gradient(ellipse at center,#1a3a0a 0%,#0a0a0a 70%);justify-content:flex-start;overflow-y:auto}
+.tut-header{width:100%;padding:14px 22px;background:rgba(0,0,0,.5);border-bottom:1px solid rgba(212,175,55,.2);display:flex;align-items:center;gap:18px;flex-shrink:0}
+.tut-header h2{color:var(--gold);flex:1;text-align:center}
+.tut-body{padding:28px;max-width:880px;width:100%;margin:0 auto}
+.chapter-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-top:18px}
+.chap-card{background:rgba(26,92,46,.4);border:1px solid rgba(212,175,55,.3);border-radius:10px;padding:18px 14px;cursor:pointer;transition:all .2s;text-align:center}
+.chap-card:hover{border-color:var(--gold);background:rgba(26,92,46,.7)}
+.chap-card.done{border-color:#27ae60;background:rgba(39,174,96,.1)}
+.chap-card .ci{font-size:1.9rem;margin-bottom:7px}
+.chap-card h4{color:var(--gold);font-size:.92rem;margin-bottom:3px}
+.chap-card p{font-size:.73rem;opacity:.7}
+/* Lesson content */
+.lesson h3{color:var(--gold);font-size:1.4rem;margin-bottom:14px;text-align:center}
+.ls{margin-bottom:26px}
+.ls h4{color:var(--gold-light);font-size:1.05rem;margin-bottom:9px;border-bottom:1px solid rgba(212,175,55,.2);padding-bottom:5px}
+.ls p{line-height:1.7;opacity:.9;margin-bottom:7px}
+.hr-list{display:flex;flex-direction:column;gap:7px}
+.hr-item{display:flex;align-items:center;gap:12px;padding:9px 14px;background:rgba(0,0,0,.3);border-radius:7px;border-left:3px solid var(--gold)}
+.hr-item .rn{color:var(--gold);font-weight:bold;width:22px;text-align:center;font-size:.85rem}
+.hr-item .rname{flex:1;font-weight:bold;font-size:.9rem}
+.hr-item .rdesc{opacity:.55;font-size:.75rem}
+.hr-item .rex{font-size:.85rem;letter-spacing:1px}
+/* GAME BOARD */
+#s-game{flex-direction:column;background:radial-gradient(ellipse at center,var(--felt-light) 0%,var(--felt) 40%,var(--felt-dark) 100%);position:relative;overflow:hidden}
+#s-game::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 25% 35%,rgba(255,255,255,.03) 0%,transparent 50%);pointer-events:none}
+.poker-table{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:84vmin;height:54vmin;background:radial-gradient(ellipse,var(--felt-light) 0%,var(--felt) 55%,var(--felt-dark) 100%);border-radius:50%;border:12px solid #5a3820;box-shadow:0 0 0 5px #3a2010,0 20px 60px rgba(0,0,0,.6),inset 0 0 40px rgba(0,0,0,.2);z-index:0}
+.table-logo{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:rgba(255,255,255,.05);font-size:1.7rem;font-variant:small-caps;letter-spacing:4px;pointer-events:none;white-space:nowrap}
+/* HUD */
+.hud{position:absolute;top:0;left:0;right:0;padding:9px 18px;display:flex;align-items:center;gap:12px;background:linear-gradient(to bottom,rgba(0,0,0,.8),transparent);z-index:100}
+.hud-name{font-size:.88rem;color:var(--gold);font-variant:small-caps;letter-spacing:2px}
+.hud-sp{flex:1}
+.coin-disp{display:flex;align-items:center;gap:5px;background:rgba(0,0,0,.5);padding:5px 13px;border-radius:20px;border:1px solid rgba(212,175,55,.3)}
+.coin-disp .ca{font-size:.88rem;color:var(--gold);font-weight:bold}
+.coin-disp .cl{font-size:.68rem;opacity:.5}
+.mode-badge{padding:3px 9px;border-radius:12px;font-size:.72rem;font-weight:bold}
+.mb-tut{background:rgba(39,174,96,.2);color:#2ecc71;border:1px solid #27ae60}
+.mb-real{background:rgba(231,76,60,.2);color:#e74c3c;border:1px solid #e74c3c}
+/* Round info */
+.round-info{position:absolute;top:48px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.6);border:1px solid rgba(212,175,55,.3);border-radius:8px;padding:3px 15px;font-size:.78rem;color:var(--gold-light);z-index:50;white-space:nowrap}
+/* Hint */
+.hint-box{position:absolute;top:48px;right:18px;max-width:250px;background:rgba(0,0,0,.88);border:1px solid rgba(39,174,96,.6);border-radius:10px;padding:13px 15px;z-index:200}
+.hint-box h4{color:#2ecc71;font-size:.82rem;margin-bottom:7px}
+.hint-box p{font-size:.78rem;line-height:1.5;opacity:.9}
+/* Community */
+.community-area{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:7px;z-index:10}
+.community-cards{display:flex;gap:7px;align-items:center;justify-content:center}
+.pot-disp{background:rgba(0,0,0,.5);border:1px solid rgba(212,175,55,.4);border-radius:20px;padding:3px 14px;font-size:.82rem;color:var(--gold);text-align:center}
+/* CARDS */
+.card{width:54px;height:78px;background:#fff;border-radius:6px;border:1px solid #ddd;display:flex;flex-direction:column;padding:3px 4px;position:relative;box-shadow:2px 3px 8px rgba(0,0,0,.3);cursor:default;transition:transform .18s;flex-shrink:0;user-select:none}
+.card.sm{width:42px;height:60px;border-radius:5px;padding:2px 3px}
+.card.red{color:#c0392b}.card.black{color:#1a1a1a}
+.card .cr{font-size:.95rem;font-weight:bold;line-height:1}
+.card .cs{font-size:.88rem;line-height:1}
+.card .cc{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.35rem;line-height:1}
+.card .cb{position:absolute;bottom:3px;right:4px;font-size:.95rem;font-weight:bold;transform:rotate(180deg);line-height:1}
+.card.sm .cr{font-size:.78rem}.card.sm .cs{font-size:.7rem}.card.sm .cc{font-size:1.05rem}.card.sm .cb{font-size:.78rem}
+.card.face-down{background:repeating-linear-gradient(45deg,#1a3a6e 0,#1a3a6e 5px,#0d2344 5px,#0d2344 10px);border:2px solid #0d2344}
+.card.face-down::after{content:'';position:absolute;inset:3px;background:rgba(13,35,68,.5);border-radius:4px}
+.card.selected{transform:translateY(-9px);box-shadow:0 8px 20px rgba(212,175,55,.5);border-color:var(--gold)}
+.card.highlight{box-shadow:0 0 14px rgba(212,175,55,.8);border-color:var(--gold)}
+@keyframes dealCard{0%{opacity:0;transform:scale(.5) rotate(-10deg)}100%{opacity:1;transform:scale(1) rotate(0deg)}}
+.card.deal{animation:dealCard .35s ease-out}
+/* Seats */
+.seat{position:absolute;display:flex;flex-direction:column;align-items:center;gap:5px;z-index:20}
+.p-info{background:rgba(0,0,0,.72);border:1px solid rgba(212,175,55,.3);border-radius:8px;padding:5px 11px;text-align:center;min-width:96px}
+.p-info.active{border-color:var(--gold);box-shadow:0 0 15px rgba(212,175,55,.3)}
+.p-info.folded{opacity:.38}
+.p-info .pname{font-size:.78rem;font-weight:bold}
+.p-info .pchips{font-size:.73rem;color:var(--gold)}
+.p-status{font-size:.68rem;padding:2px 7px;border-radius:10px;margin-top:3px;display:inline-block}
+.ps-bet{background:rgba(41,128,185,.3);color:#74b9ff}
+.ps-call{background:rgba(39,174,96,.3);color:#55efc4}
+.ps-fold{background:rgba(231,76,60,.3);color:#ff7675}
+.ps-check{background:rgba(127,140,141,.3);color:#b2bec3}
+.ps-raise{background:rgba(241,196,15,.3);color:#ffeaa7}
+.ps-all-in{background:rgba(225,112,85,.3);color:#e17055}
+.ps-thinking{background:rgba(100,100,100,.3);color:#ddd;animation:blink 1s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+.bet-chip{display:flex;align-items:center;gap:3px;background:rgba(0,0,0,.5);border:1px solid rgba(212,175,55,.3);border-radius:10px;padding:2px 7px;font-size:.68rem;color:var(--gold)}
+/* Player hand area */
+.hand-area{position:absolute;bottom:76px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:9px;z-index:20}
+.hand-cards{display:flex;gap:7px;align-items:flex-end}
+/* Actions */
+.action-bar{position:absolute;bottom:0;left:0;right:0;padding:11px 18px;display:flex;align-items:center;justify-content:center;gap:9px;background:linear-gradient(to top,rgba(0,0,0,.9),transparent);z-index:100;flex-wrap:wrap}
+.ab{padding:10px 20px;border:none;border-radius:6px;font-size:.92rem;font-family:Georgia,serif;cursor:pointer;transition:all .15s;font-weight:bold;letter-spacing:.5px;min-width:84px}
+.ab:hover{transform:translateY(-2px)}.ab:active{transform:translateY(0)}.ab:disabled{opacity:.38;cursor:not-allowed;transform:none}
+.ab-fold{background:#7f8c8d;color:#fff}.ab-fold:hover:not(:disabled){background:#95a5a6}
+.ab-check{background:#2c3e50;color:#fff;border:1px solid #34495e}.ab-check:hover:not(:disabled){background:#34495e}
+.ab-call{background:#2980b9;color:#fff}.ab-call:hover:not(:disabled){background:#3498db}
+.ab-raise{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:#0a0a0a}.ab-raise:hover:not(:disabled){background:linear-gradient(135deg,var(--gold),var(--gold-light))}
+.ab-deal{background:linear-gradient(135deg,var(--gold-dark),var(--gold));color:#0a0a0a}
+.raise-area{display:flex;align-items:center;gap:7px;background:rgba(0,0,0,.6);padding:7px 12px;border-radius:7px;border:1px solid rgba(212,175,55,.3)}
+.raise-area label{font-size:.77rem;opacity:.7}
+.raise-area input[type=range]{width:90px;accent-color:var(--gold)}
+.raise-area .rv{font-size:.88rem;color:var(--gold);font-weight:bold;min-width:44px;text-align:center}
+/* Win overlay */
+.win-overlay{position:absolute;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:300}
+.win-panel{background:linear-gradient(135deg,#0d3a1c,#1a5c2e);border:3px solid var(--gold);border-radius:15px;padding:38px 48px;text-align:center;box-shadow:0 0 60px rgba(212,175,55,.4);max-width:390px}
+.win-panel h2{font-size:1.9rem;color:var(--gold);margin-bottom:8px}
+.win-panel .wa{font-size:1.4rem;color:#2ecc71;margin-bottom:13px}
+.win-panel .wh{font-size:.95rem;color:var(--text-light);margin-bottom:22px;opacity:.8}
+.win-panel .wbts{display:flex;gap:11px;justify-content:center}
+/* Draw instruction */
+.draw-instr{position:absolute;bottom:72px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.72);border:1px solid rgba(212,175,55,.4);padding:5px 15px;border-radius:7px;font-size:.78rem;color:var(--gold-light);z-index:50;white-space:nowrap;display:none}
+/* Toast */
+.toast{position:fixed;bottom:78px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.88);border:1px solid var(--gold);color:var(--text-light);padding:9px 22px;border-radius:7px;font-size:.88rem;z-index:500;animation:toastA 3s ease forwards;pointer-events:none}
+@keyframes toastA{0%{opacity:0;transform:translate(-50%,10px)}15%{opacity:1;transform:translate(-50%,0)}75%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-10px)}}
+</style>
+</head>
+<body>
+
+<!-- Floating bg cards -->
+<div class="floating-cards" id="floatingCards"></div>
+
+<!-- HOME -->
+<div class="screen active" id="s-home">
+  <div class="logo">
+    <div class="suits">♠ ♥ ♦ ♣</div>
+    <h1>Royal Poker</h1>
+    <p>LEARN · PLAY · WIN</p>
+  </div>
+  <button class="btn btn-gold" onclick="show('s-game-select')">Start Playing</button>
+  <button class="btn btn-outline" onclick="showHowToPlay()">How to Play</button>
+</div>
+
+<!-- GAME SELECT -->
+<div class="screen" id="s-game-select">
+  <button class="btn-back" style="position:absolute;top:18px;left:18px" onclick="show('s-home')">← Back</button>
+  <div class="screen-title"><h2>Choose Your Game</h2><p>Pick a poker variant</p></div>
+  <div class="game-grid">
+    <div class="game-card" onclick="selectGame('holdem')">
+      <div class="gi">🃏</div><h3>Texas Hold'em</h3>
+      <p>2 hole cards + 5 community cards. World's most popular poker game.</p>
+      <div class="diff">★★☆☆ Beginner Friendly</div>
+    </div>
+    <div class="game-card" onclick="selectGame('omaha')">
+      <div class="gi">🎰</div><h3>Omaha</h3>
+      <p>4 hole cards, must use exactly 2. Bigger hands, more action.</p>
+      <div class="diff">★★★☆ Intermediate</div>
+    </div>
+    <div class="game-card" onclick="selectGame('draw')">
+      <div class="gi">♠️</div><h3>5-Card Draw</h3>
+      <p>Classic poker. Draw new cards to improve your hand.</p>
+      <div class="diff">★☆☆☆ Easy Start</div>
+    </div>
+    <div class="game-card" onclick="selectGame('stud')">
+      <div class="gi">🎴</div><h3>Seven-Card Stud</h3>
+      <p>7 cards over multiple rounds, some face-up. Pure skill.</p>
+      <div class="diff">★★★★ Advanced</div>
+    </div>
+  </div>
+</div>
+
+<!-- MODE SELECT -->
+<div class="screen" id="s-mode-select">
+  <button class="btn-back" style="position:absolute;top:18px;left:18px" onclick="show('s-game-select')">← Back</button>
+  <div class="screen-title"><h2 id="mode-title">How do you want to play?</h2><p id="mode-sub">Choose your experience</p></div>
+  <div class="mode-grid">
+    <div class="mode-card" onclick="startMode('learn')">
+      <div class="mi">📚</div><h3>Learn Mode</h3>
+      <p>Start with lessons on rules and hand rankings, then play with helpful hints guiding every decision.</p>
+      <span class="badge badge-inf">∞ Imaginary Coins</span>
+    </div>
+    <div class="mode-card" onclick="startMode('play')">
+      <div class="mi">🏆</div><h3>Real Game</h3>
+      <p>Jump straight in. Play against AI opponents and manage your limited coin stack wisely!</p>
+      <span class="badge badge-lim">1,000 Starting Coins</span>
+    </div>
+  </div>
+</div>
+
+<!-- TUTORIAL -->
+<div class="screen" id="s-tutorial">
+  <div class="tut-header">
+    <button class="btn-back" onclick="show('s-mode-select')">← Back</button>
+    <h2 id="tut-title">Learn Poker</h2>
+    <div style="width:60px"></div>
+  </div>
+  <div class="tut-body" id="tut-body"></div>
+</div>
+
+<!-- GAME BOARD -->
+<div class="screen" id="s-game">
+  <div class="poker-table"><div class="table-logo" id="table-logo">ROYAL POKER</div></div>
+  <!-- HUD -->
+  <div class="hud">
+    <button class="btn-back" onclick="exitGame()">✕ Exit</button>
+    <span class="hud-name" id="hud-gname">Texas Hold'em</span>
+    <div class="hud-sp"></div>
+    <span class="mode-badge" id="hud-mbadge">Tutorial</span>
+    <div class="coin-disp"><span>🪙</span><span class="ca" id="hud-coins">∞</span><span class="cl">COINS</span></div>
+  </div>
+  <div class="round-info" id="round-info">Pre-Flop</div>
+  <div class="hint-box" id="hint-box" style="display:none"><h4>💡 Hint</h4><p id="hint-text"></p></div>
+  <div class="community-area" id="comm-area">
+    <div class="community-cards" id="comm-cards"></div>
+    <div class="pot-disp" id="pot-disp" style="display:none">Pot: 0</div>
+  </div>
+  <div id="seats"></div>
+  <div class="hand-area" id="hand-area">
+    <div class="hand-cards" id="player-cards"></div>
+  </div>
+  <div class="draw-instr" id="draw-instr">Click cards to discard, then click Draw</div>
+  <div class="action-bar" id="action-bar"></div>
+</div>
+
+<script>
+// ── STATE ──────────────────────────────────────────────
+const A = { game:'holdem', mode:'learn', coins:1000, done:{} };
+const GNAMES = { holdem:"Texas Hold'em", omaha:'Omaha', draw:'5-Card Draw', stud:'Seven-Card Stud' };
+const SUITS = ['♠','♥','♦','♣'];
+const RANKS = ['2','3','4','5','6','7','8','9','10','J','Q','K','A'];
+let G = null; // active game state
+
+// ── NAV ────────────────────────────────────────────────
+function show(id){ document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById(id).classList.add('active'); }
+function selectGame(g){ A.game=g; document.getElementById('mode-title').textContent='How do you want to play?'; document.getElementById('mode-sub').textContent=GNAMES[g]; show('s-mode-select'); }
+function startMode(m){ A.mode=m; m==='learn' ? showTutorial() : startGame(); }
+function exitGame(){ if(confirm('Exit to main menu?')){ G=null; show('s-game-select'); } }
+function showHowToPlay(){ A.game='holdem'; showTutorial(); }
+
+// ── FLOATING CARDS ─────────────────────────────────────
+(function(){
+  const c=document.getElementById('floatingCards');
+  ['A♠','K♥','Q♦','J♣','10♠','9♥','8♦','7♣','6♠','5♥','4♦','3♣'].forEach(v=>{
+    const el=document.createElement('div'); el.className='fc';
+    el.textContent=v; el.style.cssText=`left:${Math.random()*90}%;width:52px;height:74px;font-size:${1+Math.random()}rem;animation-duration:${9+Math.random()*12}s;animation-delay:${-Math.random()*20}s`;
+    c.appendChild(el);
+  });
+})();
+
+// ── DECK ───────────────────────────────────────────────
+function mkDeck(){ return SUITS.flatMap(s=>RANKS.map((r,i)=>({r,s,v:i+2}))); }
+function shuffle(d){ const a=[...d]; for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]; } return a; }
+function isRed(s){ return s==='♥'||s==='♦'; }
+
+function cardHTML(c, sm=false, sel=false, reveal=false){
+  if(!c||c.fd){ return `<div class="card${sm?' sm':''} face-down"></div>`; }
+  const col=isRed(c.s)?'red':'black';
+  const cls=`card ${col}${sm?' sm':''}${sel?' selected':''}`;
+  return `<div class="${cls}"><div class="cr">${c.r}</div><div class="cs">${c.s}</div><div class="cc">${c.s}</div><div class="cb">${c.r}</div></div>`;
+}
+
+// ── HAND EVALUATOR ─────────────────────────────────────
+const HR = {HC:1,OP:2,TP:3,TOK:4,ST:5,FL:6,FH:7,FOK:8,SF:9,RF:10};
+const HN = {1:'High Card',2:'One Pair',3:'Two Pair',4:'Three of a Kind',5:'Straight',6:'Flush',7:'Full House',8:'Four of a Kind',9:'Straight Flush',10:'Royal Flush'};
+
+function eval5(cards){
+  if(cards.length!==5) return {rank:1,name:'High Card',score:0};
+  const vals=cards.map(c=>c.v).sort((a,b)=>b-a);
+  const suits=cards.map(c=>c.s);
+  const isF=suits.every(s=>s===suits[0]);
+  const uv=[...new Set(vals)].sort((a,b)=>b-a);
+  let isSt=false, stHi=0;
+  if(uv.length===5){
+    if(uv[0]-uv[4]===4){isSt=true;stHi=uv[0];}
+    if(uv[0]===14&&uv[1]===5&&uv[2]===4&&uv[3]===3&&uv[4]===2){isSt=true;stHi=5;}
+  }
+  const cnt={};
+  vals.forEach(v=>cnt[v]=(cnt[v]||0)+1);
+  const ca=Object.entries(cnt).map(([v,c])=>({v:+v,c})).sort((a,b)=>b.c-a.c||b.v-a.v);
+  const g=ca.map(x=>x.c), tv=ca[0].v, sv=ca[1]?ca[1].v:0;
+  const sc=(r,a,b)=>r*1e6+a*100+b;
+  if(isF&&isSt){ const r=stHi===14&&uv.includes(10)?HR.RF:HR.SF; return {rank:r,name:HN[r],score:r*1e6+stHi}; }
+  if(g[0]===4) return {rank:HR.FOK,name:HN[8],score:sc(8,tv,sv)};
+  if(g[0]===3&&g[1]===2) return {rank:HR.FH,name:HN[7],score:sc(7,tv,sv)};
+  if(isF) return {rank:HR.FL,name:HN[6],score:HR.FL*1e6+vals.reduce((a,v,i)=>a+v*Math.pow(15,4-i),0)};
+  if(isSt) return {rank:HR.ST,name:HN[5],score:HR.ST*1e6+stHi};
+  if(g[0]===3) return {rank:HR.TOK,name:HN[4],score:sc(4,tv,0)};
+  if(g[0]===2&&g[1]===2) return {rank:HR.TP,name:HN[3],score:sc(3,Math.max(tv,sv),Math.min(tv,sv))};
+  if(g[0]===2) return {rank:HR.OP,name:HN[2],score:sc(2,tv,0)};
+  return {rank:HR.HC,name:HN[1],score:vals.reduce((a,v,i)=>a+v*Math.pow(15,4-i),0)};
+}
+
+function best7(cards){
+  let best=null;
+  for(let i=0;i<cards.length-1;i++) for(let j=i+1;j<cards.length;j++){
+    const five=cards.filter((_,k)=>k!==i&&k!==j);
+    const e=eval5(five);
+    if(!best||e.score>best.score) best={...e,cards:five};
+  }
+  return best;
+}
+
+function combos(arr,k){ if(k===0) return [[]]; if(!arr.length) return []; const [f,...r]=arr; return [...combos(r,k-1).map(c=>[f,...c]),...combos(r,k)]; }
+
+function bestOmaha(hole,comm){
+  let best=null;
+  combos(hole,2).forEach(h=>combos(comm,3).forEach(c=>{ const e=eval5([...h,...c]); if(!best||e.score>best.score) best={...e,cards:[...h,...c]}; }));
+  return best;
+}
+
+function hStrength(hand,variant,comm=[]){
+  try{
+    let e;
+    if(variant==='holdem'){ const all=[...hand,...comm]; e=all.length>=5?best7(all.slice(0,7)):{rank:1,score:0}; }
+    else if(variant==='omaha'){ e=comm.length>=3?bestOmaha(hand.slice(0,4),comm):{rank:1,score:0}; }
+    else if(variant==='stud'){ const vis=hand.filter(c=>!c.fd); e=vis.length>=5?best7(vis.slice(0,7)):{rank:1,score:0}; }
+    else { e=eval5(hand.slice(0,5)); }
+    return e?(e.rank/10):0.1;
+  }catch(ex){ return 0.1; }
+}
+
+// ── GAME ENGINE ────────────────────────────────────────
+const BLINDS={sb:10,bb:20};
+const AI_NAMES=['Dealer Dan','Lucky Luis','Poker Pete'];
+const AI_STYLES=['tight','loose','aggressive'];
+
+function mkPlayer(id,name,chips,human,style='balanced'){
+  return {id,name,chips,human,style,hand:[],folded:false,allIn:false,bet:0,status:'',acted:false};
+}
+
+function initGame(){
+  const chips=A.mode==='learn'?999999:A.coins;
+  G={
+    variant:A.game, mode:A.mode,
+    deck:[],
+    players:[
+      mkPlayer(0,'You',chips,true),
+      mkPlayer(1,AI_NAMES[0],800,false,'tight'),
+      mkPlayer(2,AI_NAMES[1],1200,false,'loose'),
+      mkPlayer(3,AI_NAMES[2],600,false,'aggressive'),
+    ],
+    comm:[],pot:0,curBet:0,
+    round:'pre-flop',
+    dealerPos:0,activeP:-1,
+    drawPhase:false,selCards:[],
+    gameOver:false,handNum:1,
+  };
+}
+
+async function startRound(){
+  if(!G) return;
+  G.players.forEach(p=>{ p.hand=[];p.folded=false;p.allIn=false;p.bet=0;p.status='';p.acted=false; });
+  G.comm=[];G.pot=0;G.curBet=0;G.drawPhase=false;G.selCards=[];G.gameOver=false;
+  G.deck=shuffle(mkDeck());
+  // Blinds
+  if(G.variant!=='stud'){
+    const sb=(G.dealerPos+1)%G.players.length;
+    const bb=(G.dealerPos+2)%G.players.length;
+    postBlind(sb,BLINDS.sb); postBlind(bb,BLINDS.bb);
+    G.curBet=BLINDS.bb;
+  }
+  await dealCards();
+  G.round=G.variant==='stud'?'3rd Street':'pre-flop';
+  // First to act
+  if(G.variant==='stud') G.activeP=0;
+  else{
+    const bb=(G.dealerPos+2)%G.players.length;
+    G.activeP=(bb+1)%G.players.length;
+    while(G.players[G.activeP].folded) G.activeP=(G.activeP+1)%G.players.length;
+  }
+  renderGame();
+  G.players[G.activeP].human ? enableActions() : await runAI();
+}
+
+function postBlind(pos,amt){
+  const p=G.players[pos]; const a=Math.min(amt,p.chips);
+  p.chips-=a; p.bet=a; G.pot+=a;
+}
+
+async function dealCards(){
+  const{variant,players,deck}=G;
+  const counts={holdem:2,omaha:4,draw:5,stud:3};
+  if(variant==='stud'){
+    players.forEach(p=>{ p.hand.push({...deck.pop(),fd:true},{...deck.pop(),fd:true},deck.pop()); });
+  } else {
+    for(let i=0;i<counts[variant];i++) players.forEach(p=>p.hand.push(deck.pop()));
+  }
+}
+
+// ── BETTING ────────────────────────────────────────────
+function playerAction(act){
+  if(!G||G.gameOver) return;
+  if(G.activeP<0||!G.players[G.activeP].human) return;
+  disableActions();
+  const p=G.players[G.activeP];
+  if(act==='fold'){ p.folded=true; p.status='fold'; }
+  else if(act==='check'){
+    if(G.curBet>p.bet){ toast("Can't check — there's a bet!"); enableActions(); return; }
+    p.status='check';
+  }
+  else if(act==='call'){
+    const ca=Math.min(G.curBet-p.bet,p.chips);
+    p.chips-=ca; p.bet+=ca; G.pot+=ca;
+    if(p.chips===0) p.allIn=true;
+    p.status='call';
+  }
+  else if(act==='raise'){
+    const ra=parseInt(document.getElementById('r-slider').value);
+    const diff=Math.min(G.curBet+ra-p.bet,p.chips);
+    p.chips-=diff; G.pot+=diff; p.bet+=diff;
+    G.curBet=p.bet;
+    if(p.chips===0) p.allIn=true;
+    p.status='raise';
+    G.players.forEach((x,i)=>{ if(i!==G.activeP&&!x.folded) x.acted=false; });
+  }
+  else if(act==='allin'){
+    G.pot+=p.chips; p.bet+=p.chips;
+    if(p.bet>G.curBet) G.curBet=p.bet;
+    p.chips=0; p.allIn=true; p.status='all-in';
+  }
+  p.acted=true;
+  renderGame();
+  setTimeout(advanceTurn,600);
+}
+
+async function advanceTurn(){
+  if(!G) return;
+  let next=(G.activeP+1)%G.players.length;
+  for(let lap=0;lap<G.players.length;lap++){
+    const p=G.players[next];
+    if(!p.folded&&!p.allIn&&(!p.acted||p.bet<G.curBet)){
+      G.activeP=next; renderGame();
+      p.human ? enableActions() : await runAI();
+      return;
+    }
+    next=(next+1)%G.players.length;
+  }
+  await advanceRound();
+}
+
+async function advanceRound(){
+  if(!G) return;
+  const alive=G.players.filter(p=>!p.folded);
+  if(alive.length===1){ await endHand(alive[0]); return; }
+  G.players.forEach(p=>{ p.bet=0; p.acted=false; }); G.curBet=0;
+  const v=G.variant;
+  if(v==='draw'){
+    if(G.round==='pre-flop'){ G.round='draw'; G.drawPhase=true; renderGame(); G.players[0].human?showDrawUI():runDrawAI(); return; }
+    if(G.round==='draw'||G.round==='post-draw'){ G.round='showdown'; G.drawPhase=false; await showdown(); return; }
+  }
+  if(v==='stud'){
+    const sRounds=['3rd Street','4th Street','5th Street','6th Street','7th Street','showdown'];
+    const idx=sRounds.indexOf(G.round);
+    if(idx>=0&&idx<sRounds.length-1){ G.round=sRounds[idx+1]; if(G.round!=='showdown') dealStudCard(); else{ await showdown(); return; } }
+    resetOrder(); renderGame(); G.players[G.activeP].human?enableActions():await runAI(); return;
+  }
+  if(G.round==='pre-flop'){ G.round='flop'; G.deck.pop(); G.comm.push(G.deck.pop(),G.deck.pop(),G.deck.pop()); }
+  else if(G.round==='flop'){ G.round='turn'; G.deck.pop(); G.comm.push(G.deck.pop()); }
+  else if(G.round==='turn'){ G.round='river'; G.deck.pop(); G.comm.push(G.deck.pop()); }
+  else if(G.round==='river'){ G.round='showdown'; await showdown(); return; }
+  resetOrder(); renderGame(); G.players[G.activeP].human?enableActions():await runAI();
+}
+
+function resetOrder(){
+  G.players.forEach(p=>p.acted=false);
+  let s=(G.dealerPos+1)%G.players.length;
+  while(G.players[s].folded||G.players[s].allIn) s=(s+1)%G.players.length;
+  G.activeP=s;
+}
+
+function dealStudCard(){
+  const fd=G.round==='7th Street';
+  G.players.forEach(p=>{ if(!p.folded){ const c=G.deck.pop(); if(fd) c.fd=true; p.hand.push(c); } });
+}
+
+// ── DRAW POKER ─────────────────────────────────────────
+function showDrawUI(){
+  document.getElementById('draw-instr').style.display='block';
+  document.getElementById('action-bar').innerHTML=`
+    <span style="color:var(--gold-light);font-size:.82rem">Tap cards to discard:</span>
+    <button class="ab ab-call" onclick="confirmDraw()">Draw Cards</button>
+    <button class="ab ab-check" onclick="standPat()">Stand Pat (Keep All)</button>`;
+  addCardClickHandlers();
+}
+function addCardClickHandlers(){
+  document.querySelectorAll('#player-cards .card').forEach((el,i)=>{
+    el.style.cursor='pointer'; el.onclick=()=>toggleSel(i);
+  });
+}
+function toggleSel(i){ const si=G.selCards.indexOf(i); si===-1?G.selCards.push(i):G.selCards.splice(si,1); renderPlayerCards(); addCardClickHandlers(); }
+function confirmDraw(){
+  const p=G.players[0];
+  G.selCards.sort((a,b)=>b-a).forEach(i=>{ p.hand.splice(i,1); p.hand.push(G.deck.pop()); });
+  G.selCards=[]; finishDraw();
+}
+function standPat(){ G.selCards=[]; finishDraw(); }
+function finishDraw(){
+  document.getElementById('draw-instr').style.display='none';
+  runDrawAI();
+}
+function runDrawAI(){
+  G.players.forEach(p=>{
+    if(!p.human&&!p.folded){
+      const keep=keepIdx(p.hand);
+      const disc=[];
+      for(let i=0;i<p.hand.length;i++) if(!keep.includes(i)) disc.push(i);
+      disc.sort((a,b)=>b-a).slice(0,3).forEach(i=>{ p.hand.splice(i,1); p.hand.push(G.deck.pop()); });
+    }
+  });
+  G.round='post-draw'; G.curBet=0;
+  renderGame(); resetOrder(); setDefaultBar();
+  G.players[G.activeP].human?enableActions():setTimeout(()=>runAI(),500);
+}
+function keepIdx(hand){
+  const cnt={},keep=[];
+  hand.forEach((c,i)=>{ cnt[c.v]=(cnt[c.v]||[]); cnt[c.v].push(i); });
+  Object.values(cnt).forEach(arr=>{ if(arr.length>1) keep.push(...arr); });
+  const sc={};
+  hand.forEach((c,i)=>{ sc[c.s]=(sc[c.s]||[]); sc[c.s].push(i); });
+  Object.values(sc).forEach(arr=>{ if(arr.length>=4) keep.push(...arr); });
+  return [...new Set(keep)];
+}
+
+// ── SHOWDOWN ───────────────────────────────────────────
+async function showdown(){
+  const alive=G.players.filter(p=>!p.folded);
+  let winner=null, best=null;
+  for(const p of alive){
+    let e;
+    if(G.variant==='holdem') e=best7([...p.hand,...G.comm].slice(0,7));
+    else if(G.variant==='omaha') e=G.comm.length>=3?bestOmaha(p.hand,G.comm):eval5(p.hand.slice(0,5));
+    else if(G.variant==='stud'){ const vis=p.hand.filter(c=>!c.fd); e=best7(vis.slice(0,7)); }
+    else e=eval5(p.hand.slice(0,5));
+    if(!best||e.score>best.score){ winner=p; best=e; }
+  }
+  await endHand(winner,best);
+}
+
+async function endHand(winner,ev=null){
+  if(!G) return;
+  G.gameOver=true;
+  winner.chips+=G.pot;
+  if(winner.human){ A.coins=winner.chips; G.players[0].chips=winner.chips; }
+  renderGame();
+  setTimeout(()=>showWin(winner,ev),700);
+}
+
+function showWin(w,ev){
+  const el=document.createElement('div'); el.className='win-overlay';
+  el.innerHTML=`<div class="win-panel">
+    <h2>${w.human?'🏆 You Win!':w.name+' Wins'}</h2>
+    <div class="wa">+ ${G.pot} coins</div>
+    <div class="wh">${ev?ev.name:'Best Hand'}</div>
+    ${!w.human?'<p style="color:#e74c3c;margin-bottom:14px">Better luck next hand!</p>':''}
+    <div class="wbts">
+      <button class="btn btn-gold" onclick="this.closest('.win-overlay').remove();nextRound()">Next Hand</button>
+      <button class="btn btn-outline" onclick="this.closest('.win-overlay').remove();exitGame()">Exit</button>
+    </div></div>`;
+  document.getElementById('s-game').appendChild(el);
+}
+
+function nextRound(){
+  document.querySelectorAll('.win-overlay').forEach(e=>e.remove());
+  G.players=G.players.filter(p=>p.chips>0);
+  if(G.players.length<2){ toast('Game over — not enough players'); setTimeout(exitGame,1800); return; }
+  G.dealerPos=(G.dealerPos+1)%G.players.length;
+  G.handNum++;
+  G.players.forEach(p=>{ if(!p.human&&p.chips<200) p.chips=600; });
+  setDefaultBar(); startRound();
+}
+
+// ── AI ─────────────────────────────────────────────────
+async function runAI(){
+  await sleep(700+Math.random()*700);
+  if(!G) return;
+  const p=G.players[G.activeP];
+  if(!p||p.human||p.folded){ await advanceTurn(); return; }
+  p.status='thinking'; renderGame();
+  await sleep(500+Math.random()*400);
+  const str=hStrength(p.hand,G.variant,G.comm);
+  const callAmt=G.curBet-p.bet;
+  const agg={tight:.2,loose:.6,aggressive:.8,balanced:.4}[p.style];
+  const bluff=Math.random()<{tight:.05,loose:.3,aggressive:.35,balanced:.15}[p.style]&&str<.3;
+  const eff=bluff?.9:str;
+  if(callAmt===0){
+    if(eff>.55||Math.random()<agg){
+      const ra=Math.min(Math.floor(G.pot*(.5+Math.random()*.5)),Math.floor(p.chips*.35));
+      if(ra>=BLINDS.bb){
+        const nb=Math.min(p.chips+p.bet,G.curBet+ra);
+        G.pot+=(nb-p.bet); p.chips-=(nb-p.bet); p.bet=nb; G.curBet=Math.max(G.curBet,nb);
+        p.status='raise'; G.players.forEach((x,i)=>{ if(i!==G.activeP&&!x.folded) x.acted=false; });
+      } else { p.status='check'; }
+    } else { p.status='check'; }
+  } else {
+    const odds=callAmt/(G.pot+callAmt);
+    if(eff>odds+.1||(eff>.45&&Math.random()<agg)){
+      if(eff>.72&&Math.random()<agg){
+        const ra=Math.min(Math.floor(G.pot*(.5+Math.random())),p.chips);
+        if(ra>callAmt){
+          const nb=Math.min(p.chips+p.bet,G.curBet+ra);
+          G.pot+=(nb-p.bet); p.chips-=(nb-p.bet); p.bet=nb; G.curBet=Math.max(G.curBet,nb);
+          p.status='raise'; G.players.forEach((x,i)=>{ if(i!==G.activeP&&!x.folded) x.acted=false; });
+        } else { doCall(p); }
+      } else { doCall(p); }
+    } else { p.folded=true; p.status='fold'; }
+  }
+  p.acted=true; renderGame(); await sleep(350); await advanceTurn();
+}
+function doCall(p){ const a=Math.min(G.curBet-p.bet,p.chips); p.chips-=a; p.bet+=a; G.pot+=a; if(p.chips===0) p.allIn=true; p.status='call'; }
+
+// ── RENDER ─────────────────────────────────────────────
+function renderGame(){
+  if(!G) return;
+  renderHUD(); renderRound(); renderComm(); renderPot(); renderPlayerCards(); renderSeats(); renderHint();
+}
+
+function renderHUD(){
+  document.getElementById('hud-gname').textContent=GNAMES[G.variant];
+  const ci=document.getElementById('hud-coins'), mb=document.getElementById('hud-mbadge');
+  if(G.mode==='learn'){ ci.textContent='∞'; mb.textContent='Tutorial'; mb.className='mode-badge mb-tut'; }
+  else { ci.textContent=G.players[0].chips.toLocaleString(); mb.textContent='Real Game'; mb.className='mode-badge mb-real'; }
+}
+
+function renderRound(){
+  const n={
+    'pre-flop':'Pre-Flop','flop':'The Flop','turn':'The Turn','river':'The River','showdown':'Showdown',
+    'draw':'Draw Phase','post-draw':'Final Betting',
+    '3rd Street':'3rd Street','4th Street':'4th Street','5th Street':'5th Street','6th Street':'6th Street','7th Street':'7th Street'
+  };
+  document.getElementById('round-info').textContent=n[G.round]||G.round;
+}
+
+function renderComm(){
+  const area=document.getElementById('comm-area');
+  const con=document.getElementById('comm-cards');
+  if(['holdem','omaha'].includes(G.variant)){
+    area.style.display='flex';
+    con.innerHTML=Array.from({length:5},(_,i)=>G.comm[i]?cardHTML(G.comm[i]):`<div class="card" style="opacity:.15;background:rgba(255,255,255,.08);border:1px dashed rgba(255,255,255,.2)"></div>`).join('');
+  } else { area.style.display='none'; }
+}
+
+function renderPot(){
+  const p=document.getElementById('pot-disp');
+  if(G.pot>0){ p.textContent=`Pot: ${G.pot} coins`; p.style.display='block'; } else p.style.display='none';
+}
+
+function renderPlayerCards(){
+  const p=G.players[0]; if(!p) return;
+  const con=document.getElementById('player-cards');
+  con.innerHTML=p.hand.map((c,i)=>cardHTML(c,false,G.selCards.includes(i))).join('');
+}
+
+const SEAT_POS=[
+  {top:'10%',left:'50%',transform:'translateX(-50%)'},
+  {top:'38%',left:'4%'},
+  {top:'38%',right:'4%'}
+];
+
+function renderSeats(){
+  const con=document.getElementById('seats'); con.innerHTML='';
+  G.players.forEach((p,i)=>{
+    if(p.human) return;
+    const pos=SEAT_POS[i-1]; if(!pos) return;
+    const seat=document.createElement('div'); seat.className='seat';
+    Object.assign(seat.style,pos);
+    const isAct=G.activeP===i&&!G.gameOver;
+    const isDlr=G.dealerPos===i;
+    const cnt={holdem:2,omaha:4,draw:5,stud:3}[G.variant]||2;
+    let chtml='';
+    if(G.variant==='stud'){
+      chtml='<div style="display:flex;gap:3px">'+p.hand.map(c=>cardHTML(c.fd?{fd:true}:c,true)).join('')+'</div>';
+    } else if(G.gameOver&&!p.folded){
+      chtml='<div style="display:flex;gap:3px">'+p.hand.slice(0,cnt).map(c=>cardHTML(c,true)).join('')+'</div>';
+    } else {
+      chtml='<div style="display:flex;gap:3px">'+Array(Math.min(cnt,G.variant==='omaha'?4:cnt)).fill('<div class="card sm face-down"></div>').join('')+'</div>';
+    }
+    seat.innerHTML=`${chtml}
+      <div class="p-info${isAct?' active':''}${p.folded?' folded':''}">
+        <div class="pname">${p.name}${isDlr?' 🔘':''}</div>
+        <div class="pchips">🪙 ${p.chips}</div>
+        ${p.status?`<span class="p-status ps-${p.status}">${p.status.toUpperCase()}</span>`:''}
+      </div>
+      ${p.bet>0?`<div class="bet-chip">🪙 ${p.bet}</div>`:''}`;
+    con.appendChild(seat);
+  });
+  // Human info
+  const ha=document.getElementById('hand-area'); let hi=document.getElementById('hi');
+  if(!hi){ hi=document.createElement('div'); hi.id='hi'; ha.appendChild(hi); }
+  const hu=G.players[0]; const isAct=G.activeP===0&&!G.gameOver;
+  hi.innerHTML=`<div class="p-info${isAct?' active':''}">
+    <div class="pname">You${G.dealerPos===0?' 🔘':''}</div>
+    <div class="pchips">🪙 ${G.mode==='learn'?'∞':hu.chips}</div>
+    ${hu.status?`<span class="p-status ps-${hu.status}">${hu.status.toUpperCase()}</span>`:''}
+  </div>`;
+}
+
+function renderHint(){
+  const hb=document.getElementById('hint-box');
+  if(G.mode!=='learn'){ hb.style.display='none'; return; }
+  const hint=getHint(G.players[0]);
+  if(hint){ hb.style.display='block'; document.getElementById('hint-text').textContent=hint; }
+  else hb.style.display='none';
+}
+
+function getHint(p){
+  const str=hStrength(p.hand,G.variant,G.comm);
+  const ca=G.curBet-p.bet;
+  if(G.round==='pre-flop'){
+    const hasA=p.hand.some(c=>c.r==='A');
+    const hasPair=p.hand.length>=2&&new Set(p.hand.map(c=>c.v)).size<p.hand.length;
+    if(hasA&&hasPair) return 'Pocket Ace! Very strong starting hand — consider raising.';
+    if(hasPair) return 'You have a pair in hand — a solid start. Raise or call to see the flop.';
+    if(hasA) return 'Ace in hand is strong! Decide based on your second card.';
+    return 'Pre-flop: fold weak hands early to save coins for better spots.';
+  }
+  if(G.round==='flop'||G.round==='turn'){
+    if(str>.7) return 'Strong hand! Bet or raise to make opponents pay to continue.';
+    if(str>.45) return 'Decent hand. Check or call to see the next card.';
+    return 'Weak hand on the board. Consider checking or folding to a big bet.';
+  }
+  if(G.round==='river'){
+    if(str>.7) return 'Strong hand at the river — bet for value!';
+    if(ca===0) return 'Check for free to reach showdown without risking more coins.';
+    return 'Final round: only call if you are confident you have the best hand.';
+  }
+  if(G.round==='draw') return 'Tap cards you want to discard. Keep pairs, high cards, and flush/straight draws.';
+  return null;
+}
+
+function enableActions(){
+  const p=G.players[0]; if(!p||p.folded) return;
+  const ca=Math.max(0,G.curBet-p.bet);
+  const bar=document.getElementById('action-bar');
+  const max=Math.max(p.chips,0), min=BLINDS.bb;
+  const defRaise=Math.min(Math.max(Math.floor(G.pot/2),min),max);
+  bar.innerHTML=`
+    <button class="ab ab-fold" onclick="playerAction('fold')">Fold</button>
+    ${ca===0?`<button class="ab ab-check" onclick="playerAction('check')">Check</button>`:`<button class="ab ab-check" disabled>Check</button>`}
+    <button class="ab ab-call" onclick="playerAction('call')" ${ca<=0||p.chips<=0?'disabled':''}>${ca>0?`Call ${ca}`:'Call'}</button>
+    <div class="raise-area">
+      <label>Raise:</label>
+      <input type="range" id="r-slider" min="${min}" max="${max}" step="10" value="${defRaise}" oninput="document.getElementById('rv').textContent=this.value">
+      <span class="rv" id="rv">${defRaise}</span>
+    </div>
+    <button class="ab ab-raise" onclick="playerAction('raise')" ${p.chips<=ca?'disabled':''}>Raise</button>`;
+}
+
+function disableActions(){ document.querySelectorAll('.ab').forEach(b=>b.disabled=true); }
+
+function setDefaultBar(){
+  document.getElementById('action-bar').innerHTML=`<button class="ab ab-deal" onclick="nextRound()">Deal Next Hand</button>`;
+}
+
+// ── START GAME ─────────────────────────────────────────
+function startGame(){
+  document.getElementById('table-logo').textContent=GNAMES[A.game].toUpperCase();
+  initGame(); show('s-game');
+  document.getElementById('action-bar').innerHTML='';
+  setTimeout(()=>startRound(),300);
+}
+
+// ── TUTORIAL ───────────────────────────────────────────
+const TUTS = {
+  holdem:{
+    title:"Texas Hold'em",
+    chapters:[
+      {id:'basics',icon:'📖',title:'The Basics',desc:'How the game works',
+       content:`<div class="ls"><h4>What is Texas Hold'em?</h4><p>Each player gets 2 private hole cards, and 5 community cards are dealt face-up. Make the best 5-card hand using any combination of your 2 + the 5 community cards.</p></div>
+       <div class="ls"><h4>Order of Play</h4><p><strong>Pre-Flop:</strong> 2 hole cards dealt. First bet.<br><strong>Flop:</strong> 3 community cards revealed. Second bet.<br><strong>Turn:</strong> 4th community card. Third bet.<br><strong>River:</strong> 5th community card. Final bet.<br><strong>Showdown:</strong> Best hand wins the pot!</p></div>
+       <div class="ls"><h4>Blinds</h4><p>Before cards are dealt, two players post forced bets (blinds). The Small Blind is half the minimum bet, the Big Blind is the full minimum. These ensure there's always a pot to win.</p></div>`},
+      {id:'hands',icon:'🃏',title:'Hand Rankings',desc:'Which hands beat which',
+       content:`<div class="ls"><h4>Rankings — Best to Worst</h4>
+       <div class="hr-list">
+         <div class="hr-item"><span class="rn">1</span><span class="rname">Royal Flush</span><span class="rex" style="color:#c0392b">A♥K♥Q♥J♥10♥</span><span class="rdesc">Unbeatable</span></div>
+         <div class="hr-item"><span class="rn">2</span><span class="rname">Straight Flush</span><span class="rex" style="color:#2980b9">9♣8♣7♣6♣5♣</span><span class="rdesc">5 in a row, same suit</span></div>
+         <div class="hr-item"><span class="rn">3</span><span class="rname">Four of a Kind</span><span class="rex">A♠A♥A♦A♣K</span><span class="rdesc">Four same rank</span></div>
+         <div class="hr-item"><span class="rn">4</span><span class="rname">Full House</span><span class="rex" style="color:#c0392b">K♥K♦K♣Q♥Q♦</span><span class="rdesc">Three + a pair</span></div>
+         <div class="hr-item"><span class="rn">5</span><span class="rname">Flush</span><span class="rex" style="color:#c0392b">A♥J♥9♥6♥2♥</span><span class="rdesc">Five same suit</span></div>
+         <div class="hr-item"><span class="rn">6</span><span class="rname">Straight</span><span class="rex">9♠8♥7♦6♣5♠</span><span class="rdesc">Five in sequence</span></div>
+         <div class="hr-item"><span class="rn">7</span><span class="rname">Three of a Kind</span><span class="rex">Q♠Q♥Q♦8♣3♠</span><span class="rdesc">Three same rank</span></div>
+         <div class="hr-item"><span class="rn">8</span><span class="rname">Two Pair</span><span class="rex" style="color:#c0392b">J♥J♣7♥7♦A</span><span class="rdesc">Two different pairs</span></div>
+         <div class="hr-item"><span class="rn">9</span><span class="rname">One Pair</span><span class="rex">10♠10♦K♣5♥2</span><span class="rdesc">Two same rank</span></div>
+         <div class="hr-item"><span class="rn">10</span><span class="rname">High Card</span><span class="rex">A♠J♦9♣6♥2</span><span class="rdesc">No match</span></div>
+       </div></div>`},
+      {id:'bet',icon:'🪙',title:'Betting Actions',desc:'Fold, check, call, raise',
+       content:`<div class="ls"><h4>Your Options</h4>
+       <p><strong>Fold:</strong> Give up your hand. Lose your bets so far, but risk nothing more. Smart with weak hands facing big bets.</p>
+       <p><strong>Check:</strong> Pass without betting when no one has bet yet this round.</p>
+       <p><strong>Call:</strong> Match the current bet to stay in.</p>
+       <p><strong>Raise:</strong> Increase the bet, forcing others to call or fold.</p>
+       <p><strong>All-In:</strong> Bet all your chips.</p></div>
+       <div class="ls"><h4>Pot Odds</h4><p>If the pot has 100 and calling costs 20, you're getting 5:1 odds. If you expect to win more than 1 in 6 times, calling is profitable!</p></div>
+       <div class="ls"><h4>Position</h4><p>Acting last (the button) is a major advantage — you see everyone else's action before deciding. Play more hands in late position.</p></div>`},
+      {id:'strat',icon:'🧠',title:'Basic Strategy',desc:'Tips to win more',
+       content:`<div class="ls"><h4>Starting Hands</h4><p>Best starters: Pocket Aces (AA), Kings (KK), Queens (QQ), Ace-King (AK), Jacks (JJ). Fold trash like 7-2 offsuit early.</p></div>
+       <div class="ls"><h4>Don't Overplay Weak Hands</h4><p>If the board has 3 of one suit and you don't hold any, someone likely has a flush. Don't call big bets hoping to get lucky.</p></div>
+       <div class="ls"><h4>Read the Board</h4><p>Three connected cards (7-8-9)? Someone might have a straight. Three of one suit? Possible flush. Adjust your play accordingly.</p></div>
+       <div class="ls"><h4>Bluffing</h4><p>Bet as if you're strong when you're not. Use sparingly and only when the board supports a believable story.</p></div>`}
+    ]},
+  omaha:{
+    title:'Omaha',
+    chapters:[
+      {id:'basics',icon:'📖',title:'Omaha Basics',desc:'The key difference',
+       content:`<div class="ls"><h4>4 Hole Cards</h4><p>Like Hold'em, but you receive 4 hole cards instead of 2. CRITICAL: you MUST use exactly 2 of your hole cards and exactly 3 community cards. No more, no less.</p></div>
+       <div class="ls"><h4>Why It Matters</h4><p>If the board shows A♠A♥A♦, you don't have three aces unless you hold an Ace in your hand — and even then, you must use exactly 2 from your hand.</p></div>
+       <div class="ls"><h4>Bigger Hands</h4><p>With 4 hole cards, players connect more often. Two pair that wins in Hold'em often loses in Omaha. You typically need a straight, flush, or better.</p></div>`},
+      {id:'strat',icon:'🧠',title:'Omaha Strategy',desc:'How to win at Omaha',
+       content:`<div class="ls"><h4>Double-Suited Hands Win</h4><p>Best starting hands are "double-suited" (two pairs of suited cards) and connected. Example: A♠A♥K♠Q♥ gives flush draws in two suits plus nut pair.</p></div>
+       <div class="ls"><h4>Nut Chasing</h4><p>Always aim for the "nuts" — the best possible hand given the board. In Omaha, second-best hands often lose big pots.</p></div>
+       <div class="ls"><h4>Don't Overvalue Aces</h4><p>A pair of aces is much weaker in Omaha than Hold'em. You need more — a draw to the nut flush or a set to be confident.</p></div>`}
+    ]},
+  draw:{
+    title:'5-Card Draw',
+    chapters:[
+      {id:'basics',icon:'📖',title:'Draw Basics',desc:'Classic poker explained',
+       content:`<div class="ls"><h4>How It Works</h4><p>Each player gets 5 face-down cards. After a betting round, each player may discard any number of cards and draw replacements. Then a final betting round and showdown.</p></div>
+       <div class="ls"><h4>Reading Opponents</h4><p>Drawing 3 cards = probably one pair. Drawing 1-2 = two pair, three of a kind, or a drawing hand. Drawing 0 (stand pat) = already strong or bluffing.</p></div>`},
+      {id:'strat',icon:'🧠',title:'Draw Strategy',desc:'What to keep, what to ditch',
+       content:`<div class="ls"><h4>What to Keep</h4><p>Keep pairs, three of a kinds, and any four cards to a flush or straight. Discard isolated low cards that don't connect with your hand.</p></div>
+       <div class="ls"><h4>Don't Break Made Hands</h4><p>Never break a straight or flush chasing a higher one. A bird in hand is worth two in the deck!</p></div>`}
+    ]},
+  stud:{
+    title:'Seven-Card Stud',
+    chapters:[
+      {id:'basics',icon:'📖',title:'Stud Basics',desc:'The original poker game',
+       content:`<div class="ls"><h4>No Community Cards</h4><p>Each player gets their own 7 cards: 2 face-down, 4 face-up across 4 rounds, then 1 final face-down. No shared board! Best 5 of your 7 wins.</p></div>
+       <div class="ls"><h4>Streets</h4><p>3rd Street (2 down, 1 up) → 4th → 5th → 6th Street (each adds 1 face-up card) → 7th Street (final card face down) → Showdown.</p></div>`},
+      {id:'strat',icon:'🧠',title:'Stud Strategy',desc:'Memory wins in Stud',
+       content:`<div class="ls"><h4>Track Folded Cards</h4><p>This is #1 in Stud. You can see opponents' face-up cards. If you need a King and three Kings are showing in other hands or folded, give up!</p></div>
+       <div class="ls"><h4>Live Cards</h4><p>Only pursue draws with "live" cards — ones not yet visible. Chasing a flush when 4 of your suit are already dead is a losing play.</p></div>`}
+    ]}
+};
+
+function showTutorial(){
+  const t=TUTS[A.game]; if(!t) return;
+  document.getElementById('tut-title').textContent='Learn '+t.title;
+  show('s-tutorial'); renderChapList();
+}
+
+function renderChapList(){
+  const t=TUTS[A.game]; const done=A.done[A.game]||{};
+  document.getElementById('tut-body').innerHTML=`
+    <h3 style="color:var(--gold);margin-bottom:6px">Course: ${t.title}</h3>
+    <p style="opacity:.6;margin-bottom:18px">Read the chapters, then play with live hints!</p>
+    <div class="chapter-grid">${t.chapters.map(ch=>`
+      <div class="chap-card${done[ch.id]?' done':''}" onclick="showChap('${ch.id}')">
+        <div class="ci">${ch.icon}</div><h4>${ch.title}</h4><p>${ch.desc}</p>
+        ${done[ch.id]?'<p style="color:#2ecc71;margin-top:5px;font-size:.72rem">✓ Done</p>':''}
+      </div>`).join('')}
+    </div>
+    <div style="margin-top:28px;text-align:center">
+      <button class="btn btn-gold" onclick="startGame()">▶ Play with Hints</button>
+      <p style="margin-top:9px;opacity:.5;font-size:.78rem">Or read chapters above first</p>
+    </div>`;
+}
+
+function showChap(id){
+  const t=TUTS[A.game]; const ch=t.chapters.find(c=>c.id===id); if(!ch) return;
+  const idx=t.chapters.indexOf(ch);
+  document.getElementById('tut-body').innerHTML=`
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+      <button class="btn-back" onclick="renderChapList()">← Chapters</button>
+      <h3 style="color:var(--gold);flex:1">${ch.icon} ${ch.title}</h3>
+      <span style="opacity:.5;font-size:.78rem">${idx+1}/${t.chapters.length}</span>
+    </div>
+    <div class="lesson">${ch.content}
+      <div style="display:flex;gap:12px;justify-content:center;margin-top:28px">
+        ${idx>0?`<button class="btn btn-outline" onclick="showChap('${t.chapters[idx-1].id}')">← Previous</button>`:''}
+        <button class="btn btn-gold" onclick="finishChap('${id}')">${idx<t.chapters.length-1?'Next Chapter →':'Finish & Play! →'}</button>
+      </div>
+    </div>`;
+}
+
+function finishChap(id){
+  if(!A.done[A.game]) A.done[A.game]={};
+  A.done[A.game][id]=true;
+  const t=TUTS[A.game]; const idx=t.chapters.findIndex(c=>c.id===id);
+  if(idx<t.chapters.length-1) showChap(t.chapters[idx+1].id);
+  else { toast('All chapters complete! Starting guided play...'); setTimeout(()=>startGame(),1200); }
+}
+
+// ── UTILS ──────────────────────────────────────────────
+function toast(msg){
+  const el=document.createElement('div'); el.className='toast'; el.textContent=msg;
+  document.body.appendChild(el); setTimeout(()=>el.remove(),3200);
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+</script>
+</body>
+</html>
